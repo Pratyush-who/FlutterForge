@@ -1,0 +1,22 @@
+name: flutterforge
+description: "A Dart CLI for Flutter project setup"
+version: 0.0.1
+
+environment:
+  sdk: ">=3.9.2 <4.0.0"
+
+dependencies:
+  http: ^1.5.0
+  process_run: ^1.0.0
+  args: ^2.4.2
+  provider: ^6.1.5+1
+  firebase_core: ^4.1.1
+  firebase_auth: ^6.1.0
+  cloud_firestore: ^6.0.2
+  firebase_messaging: ^16.0.2
+  camera: ^0.11.2
+  image_picker: ^1.2.0
+  flutter_local_notifications: ^19.4.2
+
+dev_dependencies:
+  lints: ^2.0.0
