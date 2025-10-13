@@ -1,22 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:flutterforge/model_gemini.dart';
+import 'package:flutterforge/folder_struc.dart';
 import 'package:http/http.dart' as http;
 
 class GeminiService {
-  // Use a model that the API key has access to (discovered via ListModels)
   static const String _baseUrl =
       'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent';
   String _apiKey = '';
 
-  /// Constructor - loads API key from .env
   GeminiService() {
     _loadApiKey();
   }
 
   void _loadApiKey() {
-    // Try to read GEMINI_API_KEY from a local .env file (simple parser)
     try {
       final envFile = File('.env');
       if (envFile.existsSync()) {
@@ -38,16 +34,12 @@ class GeminiService {
           }
         }
       }
-    } catch (_) {
-      // ignore parse errors and fall back to environment variables
-    }
+    } catch (_) {}
 
-    // Fallback to environment variable if not found in .env
     if (_apiKey.isEmpty) {
       _apiKey = Platform.environment['GEMINI_API_KEY'] ?? '';
     }
 
-    // Debug: print masked API key source (do not reveal full key)
     if (_apiKey.isNotEmpty) {
       final masked = _apiKey.length > 4
           ? '${_apiKey.substring(0, 4)}****'
@@ -58,8 +50,11 @@ class GeminiService {
     }
   }
 
-  /// Analyzes project requirements using Gemini API
-  Future<GeminiResponse?> analyzeProjectRequirements(String userInput) async {
+  /// Analyzes project requirements with enhanced architecture detection
+  Future<GeminiResponse?> analyzeProjectRequirements(
+    String userInput,
+    String? architecturePattern,
+  ) async {
     if (_apiKey.isEmpty) {
       print(
         '❌ API key not configured. Please set GEMINI_API_KEY in .env file.',
@@ -68,59 +63,112 @@ class GeminiService {
     }
 
     try {
-      final prompt = _buildPrompt(userInput);
+      final prompt = _buildEnhancedPrompt(userInput, architecturePattern);
       final response = await _callGeminiApi(prompt);
 
       if (response != null) {
         final parsed = _parseResponse(response);
 
-        // If parsed result is empty or not useful, use deterministic local fallback
         if ((parsed.packages.isEmpty && parsed.appFlow.isEmpty) ||
             parsed.notes.isEmpty) {
-          return _localFallback(userInput);
+          return _localFallback(userInput, architecturePattern);
         }
 
         return parsed;
       }
 
-      // If API failed, return a local deterministic suggestion
-      return _localFallback(userInput);
+      return _localFallback(userInput, architecturePattern);
     } catch (e) {
       print('❌ Error calling Gemini API: $e');
-      return null;
+      return _localFallback(userInput, architecturePattern);
     }
   }
 
-  /// Builds the prompt for Gemini
-  String _buildPrompt(String userInput) {
-    return '''
-You are a Flutter development expert. A developer wants to build: "$userInput"
+  /// Enhanced prompt with better edge case handling
+  String _buildEnhancedPrompt(String userInput, String? architecture) {
+    final archInfo = architecture != null 
+        ? '\n\nThe developer wants to use "$architecture" architecture pattern.'
+        : '';
 
-Analyze this requirement and provide recommendations in VALID JSON format only. Do not include any markdown formatting, code blocks, or extra text. Return ONLY the JSON object.
+    return '''
+You are an expert Flutter architect and developer. Analyze this project requirement carefully:
+
+PROJECT: "$userInput"$archInfo
+
+Provide recommendations in VALID JSON format ONLY. No markdown, no code blocks, no extra text.
+
+CRITICAL RULES:
+1. Return ONLY the JSON object - nothing before or after
+2. Use real, published Flutter packages from pub.dev
+3. Consider the project's complexity and scale
+4. Include essential packages first, then optional enhancements
+5. Ensure packages work together without conflicts
+6. Suggest 5-10 packages maximum (avoid over-engineering)
+7. Include state management appropriate for project size
+8. Add packages for: networking, storage, navigation, UI components
+9. Consider platform-specific needs (iOS/Android/Web)
+10. Avoid deprecated or unmaintained packages
 
 Response format:
 {
-  "packages": ["package1", "package2", "package3"],
+  "packages": ["package1", "package2"],
   "appFlow": ["Screen1", "Screen2", "Screen3"],
-  "notes": "Brief implementation guidance"
+  "folderStructure": {
+    "pattern": "mvvm|mvc|clean|feature-first|auto-detect",
+    "folders": ["folder1", "folder2"]
+  },
+  "notes": "Implementation guidance (max 150 chars)"
 }
 
-Rules:
-- "packages": List of Flutter package names (without version numbers)
-- "appFlow": List of screen names showing navigation flow (3-5 screens)
-- "notes": One concise sentence about implementation (max 100 chars)
-- Return ONLY valid JSON, no markdown, no code blocks, no extra text
-- Use real Flutter package names from pub.dev
-- Be specific and practical
+FOLDER STRUCTURE PATTERNS:
+- "mvvm": models/, views/, viewmodels/, services/, utils/
+- "mvc": models/, views/, controllers/, services/, utils/
+- "clean": data/, domain/, presentation/, core/
+- "feature-first": features/, core/, shared/
+- "auto-detect": Analyze the project and choose the best pattern
 
-Example for "a todo app":
-{"packages":["provider","sqflite","intl"],"appFlow":["Splash","Home","AddTask","TaskDetail"],"notes":"Use provider for state management and sqflite for local storage"}
+EDGE CASES TO HANDLE:
+- Vague descriptions: Ask for clarification in notes, provide general packages
+- E-commerce: payment gateways, cart management, product catalogs
+- Social apps: auth, real-time updates, media handling, chat
+- Enterprise: offline-first, sync, security, scalability
+- Games: game engines, physics, audio, animations
+- IoT/Hardware: bluetooth, sensors, permissions
+- Media apps: video/audio players, streaming, compression
+- Educational: progress tracking, quizzes, content delivery
+- Health/Fitness: sensors, tracking, charts, notifications
+- Finance: encryption, biometrics, secure storage
+- Location-based: maps, geolocation, tracking
+- Small utility: minimal packages, simple structure
+- Large enterprise: modular architecture, testing, CI/CD support
+
+PACKAGE SELECTION GUIDELINES:
+- State management: provider (simple), riverpod (medium), bloc (complex)
+- HTTP: http (basic), dio (advanced)
+- Local storage: shared_preferences (simple), hive/sqflite (complex)
+- Navigation: go_router (modern), auto_route (advanced)
+- UI: flutter_screenutil, cached_network_image, shimmer
+- Auth: firebase_auth, flutter_secure_storage
+- Forms: flutter_form_builder, validators
+- Images: image_picker, photo_view, flutter_cache_manager
+
+EXAMPLES:
+
+For "a simple note-taking app":
+{"packages":["provider","sqflite","intl","flutter_slidable"],"appFlow":["Home","AddNote","NoteDetail","Settings"],"folderStructure":{"pattern":"mvvm","folders":["models","views","viewmodels","services","utils"]},"notes":"Use provider for state, sqflite for local persistence, simple MVVM pattern"}
+
+For "social media app with real-time chat":
+{"packages":["firebase_core","firebase_auth","cloud_firestore","firebase_messaging","cached_network_image","image_picker","provider","go_router"],"appFlow":["Splash","Auth","Feed","Chat","Profile","CreatePost"],"folderStructure":{"pattern":"feature-first","folders":["features/auth","features/feed","features/chat","features/profile","core","shared"]},"notes":"Firebase for backend, feature-first for scalability, provider for state"}
+
+For "e-commerce app":
+{"packages":["riverpod","dio","flutter_secure_storage","cached_network_image","carousel_slider","razorpay_flutter","go_router"],"appFlow":["Splash","Home","Products","ProductDetail","Cart","Checkout","Orders","Profile"],"folderStructure":{"pattern":"clean","folders":["data/models","data/repositories","domain/entities","domain/usecases","presentation/screens","presentation/widgets","core"]},"notes":"Clean architecture for maintainability, Riverpod for complex state, Dio for API calls"}
 
 Now analyze: "$userInput"
+
+Remember: Return ONLY valid JSON, no additional text or formatting.
 ''';
   }
 
-  /// Calls Gemini API
   Future<String?> _callGeminiApi(String prompt) async {
     try {
       final url = Uri.parse('$_baseUrl?key=$_apiKey');
@@ -134,10 +182,10 @@ Now analyze: "$userInput"
           },
         ],
         'generationConfig': {
-          'temperature': 0.7,
+          'temperature': 0.4, // Lower for more consistent JSON
           'topK': 40,
           'topP': 0.95,
-          'maxOutputTokens': 1024,
+          'maxOutputTokens': 2048, // Increased for detailed responses
         },
       });
 
@@ -151,9 +199,6 @@ Now analyze: "$userInput"
         final data = jsonDecode(response.body);
         final text = data['candidates']?[0]?['content']?['parts']?[0]?['text'];
         if (text != null) return text.toString();
-
-        // If the structured 'text' field is missing, return the whole body
-        // so the fallback parser can try to extract useful info.
         return response.body;
       } else {
         print('❌ API Error: ${response.statusCode} - ${response.body}');
@@ -165,10 +210,8 @@ Now analyze: "$userInput"
     }
   }
 
-  /// Parses Gemini response into GeminiResponse object
   GeminiResponse _parseResponse(String responseText) {
     try {
-      // Clean the response - remove markdown code blocks if present
       String cleanedText = responseText.trim();
 
       // Remove markdown code blocks
@@ -176,7 +219,7 @@ Now analyze: "$userInput"
       cleanedText = cleanedText.replaceAll(RegExp(r'```\s*'), '');
       cleanedText = cleanedText.trim();
 
-      // Find JSON object in the text
+      // Find JSON object
       final jsonStart = cleanedText.indexOf('{');
       final jsonEnd = cleanedText.lastIndexOf('}');
 
@@ -187,10 +230,7 @@ Now analyze: "$userInput"
       final json = jsonDecode(cleanedText);
       return GeminiResponse.fromJson(json);
     } catch (e) {
-      print(
-        '⚠️  Warning: Could not parse structured response. Using fallback...',
-      );
-      // Fallback: try to extract information from plain text
+      print('⚠️  Warning: Could not parse response. Using fallback...');
       return _fallbackParse(responseText);
     }
   }
@@ -200,8 +240,8 @@ Now analyze: "$userInput"
     final appFlow = <String>[];
     var notes = 'Check the response above for more details.';
 
-    // Try to extract package names
-    final packageRegex = RegExp(r'`([a-z_]+)`');
+    // Extract package names
+    final packageRegex = RegExp(r'`([a-z_][a-z0-9_]*)`');
     final matches = packageRegex.allMatches(text);
     for (var match in matches) {
       final pkg = match.group(1);
@@ -210,9 +250,9 @@ Now analyze: "$userInput"
       }
     }
 
-    // Try to extract screen flow
+    // Extract screen names
     final flowRegex = RegExp(
-      r'(Splash|Login|Home|Profile|Settings|Detail|List|Dashboard)',
+      r'\b(Splash|Login|Home|Profile|Settings|Detail|List|Dashboard|Auth|Feed|Chat|Cart|Checkout|Orders|Products)\b',
       caseSensitive: false,
     );
     final flowMatches = flowRegex.allMatches(text);
@@ -226,45 +266,143 @@ Now analyze: "$userInput"
     return GeminiResponse(
       packages: packages.isEmpty ? ['provider', 'http'] : packages,
       appFlow: appFlow.isEmpty ? ['Splash', 'Home'] : appFlow,
+      folderStructure: FolderStructure(
+        pattern: 'mvvm',
+        folders: ['models', 'views', 'viewmodels', 'services', 'utils'],
+      ),
       notes: notes,
     );
   }
 
-  /// Deterministic local fallback to produce concrete recommendations
-  GeminiResponse _localFallback(String userInput) {
+  /// Enhanced local fallback with architecture support
+  GeminiResponse _localFallback(String userInput, String? architecture) {
     final lower = userInput.toLowerCase();
     final packages = <String>{'provider', 'http'};
     final flow = <String>[];
-    var notes = 'Use provider for state management.';
+    var notes = 'Basic setup with common packages.';
 
-    if (lower.contains('firebase')) {
+    // Detect project type and add relevant packages
+    if (lower.contains('e-commerce') || lower.contains('shop')) {
+      packages.addAll([
+        'dio',
+        'cached_network_image',
+        'flutter_secure_storage',
+        'razorpay_flutter',
+        'go_router',
+      ]);
+      flow.addAll(['Splash', 'Home', 'Products', 'Cart', 'Checkout', 'Profile']);
+      notes = 'E-commerce setup with payment integration.';
+    } else if (lower.contains('social') || lower.contains('chat')) {
+      packages.addAll([
+        'firebase_core',
+        'firebase_auth',
+        'cloud_firestore',
+        'firebase_messaging',
+        'cached_network_image',
+        'image_picker',
+      ]);
+      flow.addAll(['Splash', 'Auth', 'Feed', 'Chat', 'Profile']);
+      notes = 'Social app with real-time features.';
+    } else if (lower.contains('firebase')) {
       packages.addAll([
         'firebase_core',
         'firebase_auth',
         'cloud_firestore',
         'firebase_messaging',
       ]);
-      notes = 'Integrate Firebase for backend and notifications.';
-    }
-    if (lower.contains('camera')) {
-      packages.add('camera');
-      packages.add('image_picker');
-      notes = '${notes} Use camera/image_picker for photo capture.';
-    }
-    if (lower.contains('notification')) {
-      packages.add('flutter_local_notifications');
-      packages.add('firebase_messaging');
-      notes = '${notes} Add local and push notifications.';
+      flow.addAll(['Splash', 'Auth', 'Home', 'Profile']);
+      notes = 'Firebase-powered app setup.';
+    } else if (lower.contains('camera') || lower.contains('photo')) {
+      packages.addAll(['camera', 'image_picker', 'photo_view']);
+      flow.addAll(['Home', 'Camera', 'Gallery', 'Preview']);
+      notes = 'Camera and image handling app.';
+    } else if (lower.contains('map') || lower.contains('location')) {
+      packages.addAll(['google_maps_flutter', 'geolocator', 'geocoding']);
+      flow.addAll(['Home', 'Map', 'LocationDetail', 'Settings']);
+      notes = 'Location-based app with maps.';
+    } else {
+      flow.addAll(['Splash', 'Home', 'Detail', 'Settings']);
+      notes = 'General app setup.';
     }
 
-    flow.addAll(['Splash', 'Onboarding', 'Home']);
-
-    flow.add('HomeTabs: Tasks, Camera, Notifications, Profile');
+    // Determine folder structure based on architecture
+    final folderStructure = _getFolderStructure(architecture ?? 'mvvm', lower);
 
     return GeminiResponse(
       packages: packages.toList(),
       appFlow: flow,
+      folderStructure: folderStructure,
       notes: notes,
     );
+  }
+
+  /// Gets folder structure based on architecture pattern
+  FolderStructure _getFolderStructure(String pattern, String projectType) {
+    switch (pattern.toLowerCase()) {
+      case 'clean':
+      case 'clean architecture':
+        return FolderStructure(
+          pattern: 'clean',
+          folders: [
+            'data/models',
+            'data/repositories',
+            'data/datasources',
+            'domain/entities',
+            'domain/usecases',
+            'domain/repositories',
+            'presentation/screens',
+            'presentation/widgets',
+            'presentation/bloc',
+            'core/utils',
+            'core/constants',
+            'core/errors',
+          ],
+        );
+      case 'mvc':
+        return FolderStructure(
+          pattern: 'mvc',
+          folders: [
+            'models',
+            'views/screens',
+            'views/widgets',
+            'controllers',
+            'services',
+            'utils',
+            'constants',
+          ],
+        );
+      case 'feature-first':
+      case 'feature':
+        return FolderStructure(
+          pattern: 'feature-first',
+          folders: [
+            'features/auth/data',
+            'features/auth/domain',
+            'features/auth/presentation',
+            'features/home/data',
+            'features/home/domain',
+            'features/home/presentation',
+            'core/network',
+            'core/utils',
+            'shared/widgets',
+            'shared/constants',
+          ],
+        );
+      case 'mvvm':
+      default:
+        return FolderStructure(
+          pattern: 'mvvm',
+          folders: [
+            'models',
+            'views/screens',
+            'views/widgets',
+            'viewmodels',
+            'services',
+            'repositories',
+            'utils',
+            'constants',
+          ],
+        );
+    }
   }
 }
