@@ -19,7 +19,9 @@ Future<void> main() async {
 
   if (!isFlutterInstalled) {
     cliHelper.printError('   ✗ Flutter not found in PATH');
-    cliHelper.printWarning('   Install: https://flutter.dev/docs/get-started/install');
+    cliHelper.printWarning(
+      '   Install: https://flutter.dev/docs/get-started/install',
+    );
     exit(1);
   }
 
@@ -45,7 +47,9 @@ Future<void> main() async {
   // Get project description
   cliHelper.printSection('\n   PROJECT DESCRIPTION');
   Banner.showSubSeparator();
-  cliHelper.printDim('   Examples: "todo app", "e-commerce with payments", "social media feed"\n');
+  cliHelper.printDim(
+    '   Examples: "todo app", "e-commerce with payments", "social media feed"\n',
+  );
   cliHelper.printPrompt('   → ');
   final userInput = stdin.readLineSync()?.trim();
 
@@ -128,41 +132,110 @@ Future<void> main() async {
 
   // Display results
   Banner.showSeparator();
-  
-  if (response.packages.isNotEmpty) {
-    cliHelper.printSection('\n   RECOMMENDED PACKAGES (${response.packages.length})');
-    Banner.showSubSeparator();
-    for (var i = 0; i < response.packages.length; i++) {
-      print('   ${_cyan}${(i + 1).toString().padLeft(2)}.$_reset ${response.packages[i]}');
+
+  // Interactive review loop
+  var finalResponse = response;
+  var shouldReview = true;
+
+  while (shouldReview) {
+    // Display current recommendations
+    if (finalResponse.packages.isNotEmpty) {
+      cliHelper.printSection(
+        '\n   RECOMMENDED PACKAGES (${finalResponse.packages.length})',
+      );
+      Banner.showSubSeparator();
+      for (var i = 0; i < finalResponse.packages.length; i++) {
+        print(
+          '   ${_cyan}${(i + 1).toString().padLeft(2)}.$_reset ${finalResponse.packages[i]}',
+        );
+      }
+    } else {
+      cliHelper.printWarning('\n   ⚠️  No packages recommended');
     }
-  } else {
-    cliHelper.printWarning('\n   ⚠️  No packages recommended');
-  }
 
-  cliHelper.printSection('\n   ARCHITECTURE');
-  Banner.showSubSeparator();
-  final displayPattern = architecture ?? response.folderStructure.pattern;
-  print('   ${_green}→$_reset ${displayPattern.toUpperCase()}');
-
-  cliHelper.printSection('\n   FOLDER STRUCTURE (${response.folderStructure.folders.length} folders)');
-  Banner.showSubSeparator();
-  for (var folder in response.folderStructure.folders) {
-    print('   ${_cyan}lib/$_reset$folder/');
-  }
-
-  if (response.notes.isNotEmpty) {
-    cliHelper.printSection('\n   IMPLEMENTATION NOTES');
+    cliHelper.printSection('\n   ARCHITECTURE');
     Banner.showSubSeparator();
-    print('   ${_dim}${response.notes}$_reset');
+    final displayPattern =
+        architecture ?? finalResponse.folderStructure.pattern;
+    print('   ${_green}→$_reset ${displayPattern.toUpperCase()}');
+
+    cliHelper.printSection(
+      '\n   FOLDER STRUCTURE (${finalResponse.folderStructure.folders.length} folders)',
+    );
+    Banner.showSubSeparator();
+    for (var folder in finalResponse.folderStructure.folders) {
+      print('   ${_cyan}lib/$_reset$folder/');
+    }
+
+    if (finalResponse.notes.isNotEmpty) {
+      cliHelper.printSection('\n   IMPLEMENTATION NOTES');
+      Banner.showSubSeparator();
+      print('   ${_dim}${finalResponse.notes}$_reset');
+    }
+
+    Banner.showSeparator();
+
+    // Review options
+    print('');
+    cliHelper.printSection('   REVIEW OPTIONS');
+    print('   ${_green}1.$_reset Proceed with installation');
+    print('   ${_cyan}2.$_reset Make changes (describe what to modify)');
+    print('   ${_yellow}3.$_reset Cancel\n');
+
+    cliHelper.printPrompt('   Choose (1-3) [default: 1]: ');
+    final choice = stdin.readLineSync()?.trim() ?? '1';
+
+    if (choice == '3') {
+      cliHelper.printWarning('\n   → Cancelled by user');
+      exit(0);
+    } else if (choice == '2') {
+      // Get modification request
+      print('');
+      cliHelper.printPrompt(
+        '   Describe changes (e.g., "add payment, remove firebase, use bloc"): ',
+      );
+      final modifications = stdin.readLineSync()?.trim();
+
+      if (modifications == null || modifications.isEmpty) {
+        cliHelper.printWarning(
+          '   → No changes specified, keeping current setup',
+        );
+        continue;
+      }
+
+      // Regenerate with modifications
+      cliHelper.printSection('\n   Applying modifications...');
+      final modifiedResponse = await geminiService.modifyRecommendations(
+        userInput,
+        architecture,
+        modifications,
+        finalResponse,
+      );
+
+      if (modifiedResponse == null) {
+        cliHelper.printError('   ✗ Failed to apply modifications');
+        cliHelper.printInfo('   → Keeping previous recommendations\n');
+      } else {
+        finalResponse = modifiedResponse;
+        cliHelper.printSuccess('   ✓ Recommendations updated!\n');
+        Banner.showSeparator();
+      }
+    } else {
+      // Proceed with installation (choice == '1' or default)
+      shouldReview = false;
+    }
   }
 
-  Banner.showSeparator();
-
-  // Confirmations
+  // Final confirmations with updated response
   print('');
-  final installPackages = response.packages.isNotEmpty && 
-      cliHelper.confirm('   Install ${response.packages.length} packages? (y/n): ');
-  final createFolders = cliHelper.confirm('   Create folder structure? (y/n): ');
+  final installPackages =
+      finalResponse.packages.isNotEmpty &&
+      cliHelper.confirm(
+        '   Install ${finalResponse.packages.length} packages? (y/n): ',
+      );
+  final createFolders = cliHelper.confirm(
+    '   Create folder structure? (y/n): ',
+  );
 
   if (!installPackages && !createFolders) {
     cliHelper.printWarning('\n   → No actions selected');
@@ -174,10 +247,12 @@ Future<void> main() async {
   // Create folders
   if (createFolders) {
     if (projectPath == null) {
-      cliHelper.printError('\n   ✗ Cannot create folders outside Flutter project');
+      cliHelper.printError(
+        '\n   ✗ Cannot create folders outside Flutter project',
+      );
     } else {
       await folderCreator.createFolderStructure(
-        response.folderStructure,
+        finalResponse.folderStructure,
         projectPath,
       );
     }
@@ -186,15 +261,19 @@ Future<void> main() async {
   // Install packages
   if (installPackages) {
     if (projectPath == null) {
-      cliHelper.printWarning('\n   ✗ Cannot install packages outside Flutter project');
+      cliHelper.printWarning(
+        '\n   ✗ Cannot install packages outside Flutter project',
+      );
       cliHelper.printInfo('\n   Add these to pubspec.yaml manually:');
-      for (var pkg in response.packages) {
+      for (var pkg in finalResponse.packages) {
         print('   - $pkg');
       }
     } else {
       cliHelper.printSection('\n   INSTALLING PACKAGES');
       Banner.showSubSeparator();
-      final success = await commandExecutor.installPackages(response.packages);
+      final success = await commandExecutor.installPackages(
+        finalResponse.packages,
+      );
 
       if (success) {
         cliHelper.printSuccess('\n   ✓ All packages installed');
@@ -222,7 +301,7 @@ $_reset
 ''');
 
   if (cliHelper.confirm('\n   Show architecture tips? (y/n): ')) {
-    _showTips(architecture ?? response.folderStructure.pattern, cliHelper);
+    _showTips(architecture ?? finalResponse.folderStructure.pattern, cliHelper);
   }
 
   print('');
@@ -232,6 +311,7 @@ $_reset
 const _reset = '\x1B[0m';
 const _green = '\x1B[32m';
 const _cyan = '\x1B[36m';
+const _yellow = '\x1B[33m';
 const _bold = '\x1B[1m';
 const _dim = '\x1B[2m';
 
@@ -246,14 +326,14 @@ void _showTips(String pattern, CliHelper cli) {
       'Use ChangeNotifier or Riverpod for state',
       'Handle all business logic in ViewModels',
       'Use repositories for data abstraction',
-      'Views should only contain UI code'
+      'Views should only contain UI code',
     ],
     'mvc': [
       'Controllers handle user input',
       'Keep Views lightweight',
       'Models represent data and rules',
       'Use services for external operations',
-      'Controllers coordinate Model and View'
+      'Controllers coordinate Model and View',
     ],
     'clean': [
       'Follow dependency rule strictly',
@@ -261,7 +341,7 @@ void _showTips(String pattern, CliHelper cli) {
       'Use interfaces for repositories',
       'One UseCase per business operation',
       'Entities are framework-independent',
-      'Data layer implements domain interfaces'
+      'Data layer implements domain interfaces',
     ],
     'feature-first': [
       'Each feature is self-contained',
@@ -269,17 +349,19 @@ void _showTips(String pattern, CliHelper cli) {
       'Features should be independent',
       'Use core/ for shared infrastructure',
       'Easy to scale with new features',
-      'Extract features into packages'
+      'Extract features into packages',
     ],
   };
 
-  final tipList = tips[pattern.toLowerCase()] ?? [
-    'Maintain separation of concerns',
-    'Keep business logic separate from UI',
-    'Use dependency injection',
-    'Write testable code',
-    'Follow SOLID principles'
-  ];
+  final tipList =
+      tips[pattern.toLowerCase()] ??
+      [
+        'Maintain separation of concerns',
+        'Keep business logic separate from UI',
+        'Use dependency injection',
+        'Write testable code',
+        'Follow SOLID principles',
+      ];
 
   for (var i = 0; i < tipList.length; i++) {
     print('   ${_cyan}${i + 1}.$_reset ${tipList[i]}');

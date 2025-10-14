@@ -40,13 +40,9 @@ class GeminiService {
       _apiKey = Platform.environment['GEMINI_API_KEY'] ?? '';
     }
 
-    if (_apiKey.isNotEmpty) {
-      final masked = _apiKey.length > 4
-          ? '${_apiKey.substring(0, 4)}****'
-          : '****';
-      print('   API Key: $masked');
-    } else {
-      print('   ⚠️ GEMINI_API_KEY not found');
+    // Silent loading - don't display API key or status
+    if (_apiKey.isEmpty) {
+      print('   ⚠️ GEMINI_API_KEY not found in .env or environment');
     }
   }
 
@@ -67,6 +63,69 @@ class GeminiService {
         return _parseResponse(response);
       }
 
+      return null;
+    } catch (e) {
+      print('   ❌ Error: $e');
+      return null;
+    }
+  }
+
+  /// Regenerate recommendations with user modifications
+  Future<GeminiResponse?> modifyRecommendations(
+    String originalInput,
+    String? architecture,
+    String modifications,
+    GeminiResponse currentResponse,
+  ) async {
+    if (_apiKey.isEmpty) {
+      print('   ❌ API key not configured');
+      return null;
+    }
+
+    try {
+      final prompt =
+          '''You are a Flutter architecture expert. The user wants to modify their project recommendations.
+
+ORIGINAL PROJECT: "$originalInput"
+${architecture != null ? 'ARCHITECTURE: $architecture (USER REQUESTED)' : ''}
+
+CURRENT RECOMMENDATIONS:
+- Packages (${currentResponse.packages.length}): ${currentResponse.packages.join(', ')}
+- Architecture: ${currentResponse.folderStructure.pattern}
+- Folders: ${currentResponse.folderStructure.folders.join(', ')}
+
+USER REQUESTED CHANGES: "$modifications"
+
+Apply the requested changes and return ONLY valid JSON with this EXACT structure:
+{
+  "packages": ["package1", "package2"],
+  "appFlow": ["Screen1", "Screen2"],
+  "folderStructure": {
+    "pattern": "architecture-name",
+    "folders": ["folder/path1", "folder/path2"]
+  },
+  "notes": "Brief guidance about changes made"
+}
+
+CRITICAL:
+- Keep what the user didn't ask to change
+- Add/remove/replace only what was requested
+- Ensure all packages exist on pub.dev
+- Maintain architecture consistency
+- If unclear, interpret intelligently
+
+Examples of changes:
+- "add payment integration" → add razorpay_flutter, flutter_stripe
+- "remove firebase" → remove all firebase_* packages
+- "add maps" → add google_maps_flutter, geolocator
+- "use bloc instead" → replace provider with flutter_bloc, bloc
+- "add more folders for features" → add feature-specific folders
+''';
+
+      final response = await _callGeminiApi(prompt);
+      if (response != null) {
+        return _parseResponse(response);
+      }
       return null;
     } catch (e) {
       print('   ❌ Error: $e');
@@ -172,9 +231,9 @@ CRITICAL: Return ONLY the JSON object. No markdown, no explanations.''';
       }
 
       final json = jsonDecode(cleanedText);
-      
+
       // Validate required fields
-      if (json['folderStructure'] == null || 
+      if (json['folderStructure'] == null ||
           json['folderStructure']['folders'] == null ||
           (json['folderStructure']['folders'] as List).isEmpty) {
         print('   ⚠️ Warning: Invalid folder structure in response');
@@ -184,7 +243,9 @@ CRITICAL: Return ONLY the JSON object. No markdown, no explanations.''';
       return GeminiResponse.fromJson(json);
     } catch (e) {
       print('   ❌ Parse Error: $e');
-      print('   Response was: ${responseText.substring(0, responseText.length > 200 ? 200 : responseText.length)}...');
+      print(
+        '   Response was: ${responseText.substring(0, responseText.length > 200 ? 200 : responseText.length)}...',
+      );
       rethrow;
     }
   }

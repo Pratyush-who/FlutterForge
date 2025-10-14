@@ -1,12 +1,8 @@
-import 'dart:io';
-
 class Banner {
   static void show() {
     const green = '\x1B[32m';
-    const cyan = '\x1B[36m';
     const reset = '\x1B[0m';
     const bold = '\x1B[1m';
-    const dim = '\x1B[2m';
 
     print('''
 $green$bold
@@ -23,26 +19,8 @@ $green$bold
   ██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝  
   ██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗
   ╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝$reset
-                                              
-$cyan  :: Flutter Project Setup Assistant ::$reset        $dim(v1.0.0)$reset
-$cyan  :: Powered by AI Architecture Analysis ::$reset
 $reset
 ''');
-
-    _showInitializing();
-  }
-
-  static void _showInitializing() {
-    const green = '\x1B[32m';
-    const reset = '\x1B[0m';
-    const dim = '\x1B[2m';
-
-    stdout.write('$dim   Initializing');
-    for (var i = 0; i < 3; i++) {
-      sleep(Duration(milliseconds: 150));
-      stdout.write('.');
-    }
-    print(' $green✓ Ready$reset\n');
   }
 
   static void showSeparator() {
