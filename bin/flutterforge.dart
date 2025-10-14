@@ -11,303 +11,278 @@ Future<void> main() async {
   final commandExecutor = CommandExecutor();
   final folderCreator = FolderCreator();
 
-  // Show banner
   Banner.show();
 
   // Check Flutter installation
-  cliHelper.printInfo('\n🔍 Checking Flutter installation...');
+  cliHelper.printInfo('   Checking Flutter installation...');
   final isFlutterInstalled = await commandExecutor.checkFlutterInstallation();
 
   if (!isFlutterInstalled) {
-    cliHelper.printError('❌ Flutter is not installed or not in PATH');
-    cliHelper.printWarning(
-      'Please install Flutter: https://flutter.dev/docs/get-started/install',
-    );
+    cliHelper.printError('   ✗ Flutter not found in PATH');
+    cliHelper.printWarning('   Install: https://flutter.dev/docs/get-started/install');
     exit(1);
   }
 
   final flutterVersion = await commandExecutor.getFlutterVersion();
   if (flutterVersion != null) {
-    cliHelper.printSuccess('✓ $flutterVersion');
+    cliHelper.printSuccess('   ✓ $flutterVersion');
   }
 
   Banner.showSeparator();
 
-  // Check if we're in a Flutter project
+  // Check Flutter project
   final projectPath = folderCreator.getCurrentProjectPath();
   if (projectPath == null) {
-    cliHelper.printWarning(
-      '\n⚠️  Not in a Flutter project directory!',
-    );
-    cliHelper.printInfo(
-      'Please run this command from your Flutter project root (where pubspec.yaml is located).',
-    );
-    
-    if (!cliHelper.confirm('\nContinue anyway? (y/n): ')) {
+    cliHelper.printWarning('\n   ⚠️  Not in a Flutter project directory');
+    cliHelper.printInfo('   Run from project root (where pubspec.yaml exists)');
+    if (!cliHelper.confirm('\n   Continue anyway? (y/n): ')) {
       exit(0);
     }
   } else {
-    cliHelper.printSuccess('\n✓ Flutter project detected');
+    cliHelper.printSuccess('\n   ✓ Flutter project detected');
   }
 
-  // Ask what user is building
-  cliHelper.printSection('\n💡 What are you building today?');
-  cliHelper.printDim(
-    '   Examples: "a todo app", "social media app with chat", "e-commerce store"\n',
-  );
-  cliHelper.printPrompt('📝 Your project: ');
+  // Get project description
+  cliHelper.printSection('\n   PROJECT DESCRIPTION');
+  Banner.showSubSeparator();
+  cliHelper.printDim('   Examples: "todo app", "e-commerce with payments", "social media feed"\n');
+  cliHelper.printPrompt('   → ');
   final userInput = stdin.readLineSync()?.trim();
 
   if (userInput == null || userInput.isEmpty) {
-    cliHelper.printError('❌ Project description is required');
+    cliHelper.printError('   ✗ Project description required');
     exit(1);
   }
 
-  // Ask about architecture pattern
-  cliHelper.printSection('\n🏗️  Choose your architecture pattern:');
-  cliHelper.printItem('   1. MVVM (Model-View-ViewModel) - Recommended for most apps');
-  cliHelper.printItem('   2. MVC (Model-View-Controller) - Simple and familiar');
-  cliHelper.printItem('   3. Clean Architecture - Best for large, complex apps');
-  cliHelper.printItem('   4. Feature-First - Organize by features, not layers');
-  cliHelper.printItem('   5. Let AI decide (based on your project)');
-  cliHelper.printItem('   6. Custom (specify your own)\n');
-  cliHelper.printPrompt('🔢 Choose (1-6) [default: 1]: ');
-  final architectureChoice = stdin.readLineSync()?.trim() ?? '1';
+  // Architecture selection
+  cliHelper.printSection('\n   ARCHITECTURE PATTERN');
+  Banner.showSubSeparator();
+  print('''
+   ${_cyan}1.$_reset MVVM          - Model-View-ViewModel (Recommended)
+   ${_cyan}2.$_reset MVC           - Model-View-Controller  
+   ${_cyan}3.$_reset Clean         - Clean Architecture (Complex apps)
+   ${_cyan}4.$_reset Feature-First - Modular by features
+   ${_cyan}5.$_reset AI Decision   - Let AI choose best pattern
+   ${_cyan}6.$_reset Custom        - Your own pattern
+''');
+  cliHelper.printPrompt('\n   → Select [1-6]: ');
+  final choice = stdin.readLineSync()?.trim() ?? '';
 
-  String? architecturePattern;
-  switch (architectureChoice) {
+  String? architecture;
+
+  switch (choice) {
     case '1':
     case '':
-      architecturePattern = 'mvvm';
+      architecture = 'mvvm';
       break;
     case '2':
-      architecturePattern = 'mvc';
+      architecture = 'mvc';
       break;
     case '3':
-      architecturePattern = 'clean';
+      architecture = 'clean';
       break;
     case '4':
-      architecturePattern = 'feature-first';
+      architecture = 'feature-first';
       break;
     case '5':
-      architecturePattern = null; // Let AI decide
-      cliHelper.printInfo('   ✓ AI will analyze and choose the best pattern');
+      architecture = null;
+      cliHelper.printInfo('   ✓ AI will analyze and choose');
       break;
     case '6':
-      cliHelper.printPrompt('\n   Enter your architecture pattern: ');
-      architecturePattern = stdin.readLineSync()?.trim();
-      if (architecturePattern == null || architecturePattern.isEmpty) {
-        architecturePattern = 'mvvm';
-        cliHelper.printWarning('   Using default: MVVM');
+      cliHelper.printPrompt('\n   → Enter pattern name: ');
+      architecture = stdin.readLineSync()?.trim();
+      if (architecture == null || architecture.isEmpty) {
+        architecture = 'mvvm';
+        cliHelper.printWarning('   → Using default: MVVM');
       }
       break;
     default:
-      cliHelper.printWarning('   Invalid choice, using MVVM');
-      architecturePattern = 'mvvm';
+      architecture = choice.isEmpty ? 'mvvm' : choice;
+      cliHelper.printInfo('   → Using: $architecture');
   }
 
-  if (architecturePattern != null) {
-    cliHelper.printSuccess('   ✓ Selected: ${architecturePattern.toUpperCase()}');
+  if (architecture != null) {
+    cliHelper.printSuccess('   ✓ Selected: ${architecture.toUpperCase()}');
   }
 
   Banner.showSeparator();
 
-  // Analyze with Gemini
-  cliHelper.printSection('\n🤖 Analyzing your project with AI...');
-  cliHelper.showSpinner('   Please wait...');
+  // AI Analysis
+  cliHelper.printSection('\n   AI ANALYSIS');
+  Banner.showSubSeparator();
+  cliHelper.showSpinner('   Analyzing with Gemini API...');
 
   final response = await geminiService.analyzeProjectRequirements(
     userInput,
-    architecturePattern,
+    architecture,
   );
 
   cliHelper.clearLine();
 
   if (response == null) {
-    cliHelper.printError('❌ Failed to analyze project requirements');
+    cliHelper.printError('   ✗ Analysis failed - check API key and connection');
     exit(1);
   }
 
-  cliHelper.printSuccess('✓ Analysis complete!\n');
+  cliHelper.printSuccess('   ✓ Analysis complete\n');
 
-  // Display recommendations
+  // Display results
   Banner.showSeparator();
-  cliHelper.printSection('\n📦 Recommended Packages:');
-  if (response.packages.isEmpty) {
-    cliHelper.printWarning('   No packages recommended');
-  } else {
+  
+  if (response.packages.isNotEmpty) {
+    cliHelper.printSection('\n   RECOMMENDED PACKAGES (${response.packages.length})');
+    Banner.showSubSeparator();
     for (var i = 0; i < response.packages.length; i++) {
-      cliHelper.printItem('   ${i + 1}. ${response.packages[i]}');
+      print('   ${_cyan}${(i + 1).toString().padLeft(2)}.$_reset ${response.packages[i]}');
     }
-  }
-
-  cliHelper.printSection('\n🗺️  Suggested App Flow:');
-  if (response.appFlow.isEmpty) {
-    cliHelper.printWarning('   No app flow suggested');
   } else {
-    final flow = response.appFlow.join(' → ');
-    cliHelper.printItem('   $flow');
+    cliHelper.printWarning('\n   ⚠️  No packages recommended');
   }
 
-  cliHelper.printSection('\n🏗️  Architecture Pattern:');
-  cliHelper.printItem('   ${response.folderStructure.pattern.toUpperCase()}');
+  cliHelper.printSection('\n   ARCHITECTURE');
+  Banner.showSubSeparator();
+  final displayPattern = architecture ?? response.folderStructure.pattern;
+  print('   ${_green}→$_reset ${displayPattern.toUpperCase()}');
 
-  cliHelper.printSection('\n📁 Folder Structure:');
+  cliHelper.printSection('\n   FOLDER STRUCTURE (${response.folderStructure.folders.length} folders)');
+  Banner.showSubSeparator();
   for (var folder in response.folderStructure.folders) {
-    cliHelper.printItem('   lib/$folder/');
+    print('   ${_cyan}lib/$_reset$folder/');
   }
 
   if (response.notes.isNotEmpty) {
-    cliHelper.printSection('\n💡 Implementation Notes:');
-    cliHelper.printDim('   ${response.notes}');
+    cliHelper.printSection('\n   IMPLEMENTATION NOTES');
+    Banner.showSubSeparator();
+    print('   ${_dim}${response.notes}$_reset');
   }
 
   Banner.showSeparator();
 
-  // Confirm actions
+  // Confirmations
   print('');
-  final shouldInstallPackages = cliHelper.confirm(
-    '📦 Install recommended packages? (y/n): ',
-  );
+  final installPackages = response.packages.isNotEmpty && 
+      cliHelper.confirm('   Install ${response.packages.length} packages? (y/n): ');
+  final createFolders = cliHelper.confirm('   Create folder structure? (y/n): ');
 
-  final shouldCreateFolders = cliHelper.confirm(
-    '📁 Create folder structure? (y/n): ',
-  );
-
-  if (!shouldInstallPackages && !shouldCreateFolders) {
-    cliHelper.printWarning('\n⚠️  No actions selected. Exiting...');
+  if (!installPackages && !createFolders) {
+    cliHelper.printWarning('\n   → No actions selected');
     exit(0);
   }
 
   Banner.showSeparator();
 
   // Create folders
-  if (shouldCreateFolders) {
+  if (createFolders) {
     if (projectPath == null) {
-      cliHelper.printError(
-        '\n❌ Cannot create folders: Not in a Flutter project directory',
-      );
+      cliHelper.printError('\n   ✗ Cannot create folders outside Flutter project');
     } else {
-      final success = await folderCreator.createFolderStructure(
+      await folderCreator.createFolderStructure(
         response.folderStructure,
         projectPath,
       );
-
-      if (!success) {
-        cliHelper.printWarning(
-          '⚠️  Some folders could not be created',
-        );
-      }
     }
   }
 
   // Install packages
-  if (shouldInstallPackages) {
+  if (installPackages) {
     if (projectPath == null) {
-      cliHelper.printWarning(
-        '\n⚠️  Not in Flutter project. Skipping package installation.',
-      );
-      cliHelper.printInfo(
-        '   You can manually add these packages to your pubspec.yaml:',
-      );
+      cliHelper.printWarning('\n   ✗ Cannot install packages outside Flutter project');
+      cliHelper.printInfo('\n   Add these to pubspec.yaml manually:');
       for (var pkg in response.packages) {
         print('   - $pkg');
       }
     } else {
-      cliHelper.printSection('\n📦 Installing packages...');
+      cliHelper.printSection('\n   INSTALLING PACKAGES');
+      Banner.showSubSeparator();
       final success = await commandExecutor.installPackages(response.packages);
 
       if (success) {
-        cliHelper.printSuccess('\n✅ All packages installed successfully!');
+        cliHelper.printSuccess('\n   ✓ All packages installed');
       } else {
-        cliHelper.printWarning(
-          '\n⚠️  Some packages failed to install. Check the errors above.',
-        );
+        cliHelper.printWarning('\n   ⚠️  Some packages failed');
       }
 
-      // Run pub get to ensure everything is resolved
-      cliHelper.printInfo('\n🔄 Resolving dependencies...');
+      cliHelper.printInfo('\n   → Running pub get...');
       await commandExecutor.runPubGet();
     }
   }
 
-  // Final summary
+  // Summary
   Banner.showSeparator();
-  cliHelper.printBox('''
-✨ Setup Complete!
+  print('''
+$_green$_bold
+   ✓ SETUP COMPLETE
+$_reset
+   ${_cyan}Next Steps:$_reset
+   ${_dim}1. Review folder structure in lib/$_reset
+   ${_dim}2. Check lib/ARCHITECTURE.md for guidance$_reset
+   ${_dim}3. Start building your ${userInput}!$_reset
 
-Next Steps:
-1. Review the generated folder structure
-2. Check ARCHITECTURE.md for guidance
-3. Start building your ${userInput}!
-
-Happy coding! 🚀
+   ${_green}Happy coding! 🚀$_reset
 ''');
 
-  // Ask if user wants to see additional tips
-  if (cliHelper.confirm('\n📚 Show quick tips for this architecture? (y/n): ')) {
-    _showArchitectureTips(response.folderStructure.pattern, cliHelper);
+  if (cliHelper.confirm('\n   Show architecture tips? (y/n): ')) {
+    _showTips(architecture ?? response.folderStructure.pattern, cliHelper);
   }
 
-  print('\n');
+  print('');
 }
 
-/// Shows helpful tips based on architecture pattern
-void _showArchitectureTips(String pattern, CliHelper cliHelper) {
+// ANSI colors
+const _reset = '\x1B[0m';
+const _green = '\x1B[32m';
+const _cyan = '\x1B[36m';
+const _bold = '\x1B[1m';
+const _dim = '\x1B[2m';
+
+void _showTips(String pattern, CliHelper cli) {
   Banner.showSeparator();
-  cliHelper.printSection('\n💡 Quick Tips for ${pattern.toUpperCase()}:\n');
+  cli.printSection('\n   TIPS FOR ${pattern.toUpperCase()}');
+  Banner.showSubSeparator();
 
-  switch (pattern.toLowerCase()) {
-    case 'mvvm':
-      cliHelper.printItem('''
-   1. Keep ViewModels independent of Flutter widgets
-   2. Use ChangeNotifier or StateNotifier for state management
-   3. ViewModels should only expose data and actions
-   4. Handle all business logic in ViewModels
-   5. Use repositories to abstract data sources
-''');
-      break;
+  final tips = {
+    'mvvm': [
+      'Keep ViewModels Flutter-independent',
+      'Use ChangeNotifier or Riverpod for state',
+      'Handle all business logic in ViewModels',
+      'Use repositories for data abstraction',
+      'Views should only contain UI code'
+    ],
+    'mvc': [
+      'Controllers handle user input',
+      'Keep Views lightweight',
+      'Models represent data and rules',
+      'Use services for external operations',
+      'Controllers coordinate Model and View'
+    ],
+    'clean': [
+      'Follow dependency rule strictly',
+      'Domain layer has NO dependencies',
+      'Use interfaces for repositories',
+      'One UseCase per business operation',
+      'Entities are framework-independent',
+      'Data layer implements domain interfaces'
+    ],
+    'feature-first': [
+      'Each feature is self-contained',
+      'Organize by feature, not layer',
+      'Features should be independent',
+      'Use core/ for shared infrastructure',
+      'Easy to scale with new features',
+      'Extract features into packages'
+    ],
+  };
 
-    case 'mvc':
-      cliHelper.printItem('''
-   1. Controllers handle user input and update models
-   2. Keep Views lightweight - only UI code
-   3. Models represent data and business rules
-   4. Use services for external operations
-   5. Controllers coordinate between Models and Views
-''');
-      break;
+  final tipList = tips[pattern.toLowerCase()] ?? [
+    'Maintain separation of concerns',
+    'Keep business logic separate from UI',
+    'Use dependency injection',
+    'Write testable code',
+    'Follow SOLID principles'
+  ];
 
-    case 'clean':
-      cliHelper.printItem('''
-   1. Follow the dependency rule strictly
-   2. Domain layer should have NO dependencies
-   3. Use interfaces/abstract classes for repositories
-   4. UseCases contain single business operations
-   5. Keep entities pure - no framework dependencies
-   6. Data layer implements domain interfaces
-''');
-      break;
-
-    case 'feature-first':
-      cliHelper.printItem('''
-   1. Each feature is self-contained
-   2. Organize by feature, not technical layer
-   3. Features should be independent
-   4. Use core/ for shared infrastructure
-   5. Easy to scale by adding new features
-   6. Consider extracting features into packages
-''');
-      break;
-
-    default:
-      cliHelper.printItem('''
-   1. Maintain separation of concerns
-   2. Keep business logic separate from UI
-   3. Use dependency injection
-   4. Write testable code
-   5. Follow SOLID principles
-''');
+  for (var i = 0; i < tipList.length; i++) {
+    print('   ${_cyan}${i + 1}.$_reset ${tipList[i]}');
   }
 
   Banner.showSeparator();

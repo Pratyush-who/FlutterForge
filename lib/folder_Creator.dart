@@ -38,9 +38,10 @@ class FolderCreator {
           await dir.create(recursive: true);
           _cliHelper.printSuccess('   ✓ Created: $folder');
 
-          // Create a .gitkeep file to ensure empty folders are tracked
+          // Create an empty .gitkeep file to ensure empty folders are tracked
           final gitkeepFile = File('$folderPath/.gitkeep');
-          await gitkeepFile.create();
+          // Overwrite if exists to ensure the file is empty
+          await gitkeepFile.writeAsString('', flush: true);
 
           createdCount++;
         }

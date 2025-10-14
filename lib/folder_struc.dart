@@ -2,7 +2,7 @@
 class FolderStructure {
   /// Architecture pattern (mvvm, mvc, clean, feature-first)
   final String pattern;
-
+  
   /// List of folder paths to create
   final List<String> folders;
 
@@ -30,7 +30,7 @@ class FolderStructure {
 
   @override
   String toString() {
-    return 'FolderStructure(pattern: $pattern, folders: $folders)';
+    return 'FolderStructure(pattern: $pattern, folders: ${folders.length} folders)';
   }
 }
 
@@ -38,13 +38,13 @@ class FolderStructure {
 class GeminiResponse {
   /// List of recommended Flutter packages
   final List<String> packages;
-
+  
   /// Suggested app flow/navigation structure
   final List<String> appFlow;
-
+  
   /// Folder structure configuration
   final FolderStructure folderStructure;
-
+  
   /// Additional notes or recommendations
   final String notes;
 
@@ -55,7 +55,6 @@ class GeminiResponse {
     required this.notes,
   });
 
-  /// Creates a GeminiResponse from JSON
   factory GeminiResponse.fromJson(Map<String, dynamic> json) {
     return GeminiResponse(
       packages: (json['packages'] as List<dynamic>?)
@@ -67,23 +66,16 @@ class GeminiResponse {
               .toList() ??
           [],
       folderStructure: json['folderStructure'] != null
-          ? FolderStructure.fromJson(json['folderStructure'])
+          ? FolderStructure.fromJson(
+              json['folderStructure'] as Map<String, dynamic>)
           : FolderStructure(
               pattern: 'mvvm',
-              folders: [
-                'models',
-                'views/screens',
-                'views/widgets',
-                'viewmodels',
-                'services',
-                'utils',
-              ],
+              folders: [],
             ),
       notes: json['notes']?.toString() ?? '',
     );
   }
 
-  /// Converts GeminiResponse to JSON
   Map<String, dynamic> toJson() {
     return {
       'packages': packages,
@@ -95,6 +87,6 @@ class GeminiResponse {
 
   @override
   String toString() {
-    return 'GeminiResponse(packages: $packages, appFlow: $appFlow, folderStructure: $folderStructure, notes: $notes)';
+    return 'GeminiResponse(packages: ${packages.length}, appFlow: ${appFlow.length}, folderStructure: $folderStructure, notes: $notes)';
   }
 }

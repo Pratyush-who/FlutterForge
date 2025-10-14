@@ -90,28 +90,112 @@ class CommandExecutor {
 
   /// Checks if Flutter is installed
   Future<bool> checkFlutterInstallation() async {
+    // 1) Try invoking 'flutter --version' directly
     try {
       final result = await Process.run('flutter', ['--version']);
-      return result.exitCode == 0;
-    } catch (e) {
-      return false;
+      if (result.exitCode == 0) return true;
+    } catch (_) {}
+
+    // 2) Platform-specific locator: 'where' on Windows, 'which' on Unix
+    try {
+      if (Platform.isWindows) {
+        final whereRes = await Process.run('where', ['flutter']);
+        if (whereRes.exitCode == 0 &&
+            whereRes.stdout.toString().trim().isNotEmpty) {
+          return true;
+        }
+      } else {
+        final whichRes = await Process.run('which', ['flutter']);
+        if (whichRes.exitCode == 0 &&
+            whichRes.stdout.toString().trim().isNotEmpty) {
+          return true;
+        }
+      }
+    } catch (_) {}
+
+    // 3) Scan PATH entries looking for flutter executable/flutter.bat
+    final pathEnv =
+        Platform.environment['PATH'] ?? Platform.environment['Path'] ?? '';
+    final separator = Platform.isWindows ? ';' : ':';
+    final entries = pathEnv.split(separator);
+    for (var entry in entries) {
+      final trimmed = entry.trim();
+      if (trimmed.isEmpty) continue;
+      // Check common locations
+      final candidate1 = Platform.isWindows
+          ? File('$trimmed\\flutter.bat')
+          : File('$trimmed/flutter');
+
+      if (candidate1.existsSync()) return true;
+
+      final candidate2 = File(
+        '${trimmed}${Platform.pathSeparator}bin${Platform.pathSeparator}flutter${Platform.isWindows ? '.bat' : ''}',
+      );
+      if (candidate2.existsSync()) return true;
     }
+
+    return false;
   }
 
   /// Gets Flutter version
   Future<String?> getFlutterVersion() async {
+    // Attempt to run 'flutter --version' directly
     try {
       final result = await Process.run('flutter', ['--version']);
       if (result.exitCode == 0) {
         return result.stdout.toString().split('\n').first;
       }
-      return null;
-    } catch (e) {
-      return null;
+    } catch (_) {}
+
+    // Try to locate flutter binary and run it
+    try {
+      String? pathCandidate;
+      if (Platform.isWindows) {
+        final whereRes = await Process.run('where', ['flutter']);
+        if (whereRes.exitCode == 0) {
+          final out = whereRes.stdout.toString().trim();
+          if (out.isNotEmpty)
+            pathCandidate = out.split(RegExp(r'\r?\n')).first.trim();
+        }
+      } else {
+        final whichRes = await Process.run('which', ['flutter']);
+        if (whichRes.exitCode == 0) {
+          final out = whichRes.stdout.toString().trim();
+          if (out.isNotEmpty) pathCandidate = out.split('\n').first.trim();
+        }
+      }
+
+      if (pathCandidate != null && pathCandidate.isNotEmpty) {
+        final verRes = await Process.run(pathCandidate, ['--version']);
+        if (verRes.exitCode == 0)
+          return verRes.stdout.toString().split('\n').first;
+      }
+    } catch (_) {}
+
+    // Last resort: scan PATH for flutter executable and run it
+    final pathEnv =
+        Platform.environment['PATH'] ?? Platform.environment['Path'] ?? '';
+    final separator = Platform.isWindows ? ';' : ':';
+    final entries = pathEnv.split(separator);
+    for (var entry in entries) {
+      final trimmed = entry.trim();
+      if (trimmed.isEmpty) continue;
+      final candidate = Platform.isWindows
+          ? '${trimmed}${Platform.pathSeparator}flutter.bat'
+          : '${trimmed}${Platform.pathSeparator}flutter';
+      try {
+        final file = File(candidate);
+        if (file.existsSync()) {
+          final verRes = await Process.run(candidate, ['--version']);
+          if (verRes.exitCode == 0)
+            return verRes.stdout.toString().split('\n').first;
+        }
+      } catch (_) {}
     }
+
+    return null;
   }
 
-  /// Runs a custom Flutter command
   Future<bool> runCustomCommand(String command) async {
     try {
       final shell = Shell();
