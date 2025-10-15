@@ -2,11 +2,11 @@ import 'dart:io';
 import 'package:flutterforge/folder_struc.dart';
 import 'cli_helper.dart';
 
-/// Utility class to create folder structures in Flutter projects
+ 
 class FolderCreator {
   final _cliHelper = CliHelper();
 
-  /// Creates folder structure based on GeminiResponse
+   
   Future<bool> createFolderStructure(
     FolderStructure structure,
     String projectPath,
@@ -38,25 +38,25 @@ class FolderCreator {
           await dir.create(recursive: true);
           _cliHelper.printSuccess('   ✓ Created: $folder');
 
-          // Create an empty .gitkeep file to ensure empty folders are tracked
+           
           final gitkeepFile = File('$folderPath/.gitkeep');
-          // Overwrite if exists to ensure the file is empty
+           
           await gitkeepFile.writeAsString('', flush: true);
 
           createdCount++;
         }
 
-        // Show progress
+         
         _cliHelper.showProgress(i + 1, structure.folders.length);
       }
 
-      print(''); // New line after progress
+      print('');  
       _cliHelper.printSuccess('\n   ✓ Folder structure created successfully!');
       _cliHelper.printInfo(
         '   Summary: $createdCount created, $skippedCount already existed',
       );
 
-      // Create helpful README files
+       
       await _createArchitectureReadme(structure, libPath);
 
       return true;
@@ -66,7 +66,7 @@ class FolderCreator {
     }
   }
 
-  /// Creates a README explaining the architecture pattern
+   
   Future<void> _createArchitectureReadme(
     FolderStructure structure,
     String libPath,
@@ -245,14 +245,14 @@ features/
 ''';
   }
 
-  /// Validates that we're in a Flutter project directory
+   
   bool isFlutterProject(String path) {
     final pubspecFile = File('$path/pubspec.yaml');
     final libDir = Directory('$path/lib');
     return pubspecFile.existsSync() && libDir.existsSync();
   }
 
-  /// Gets the current project path or prompts user
+   
   String? getCurrentProjectPath() {
     final currentDir = Directory.current.path;
     if (isFlutterProject(currentDir)) {

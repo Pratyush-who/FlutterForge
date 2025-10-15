@@ -2,11 +2,11 @@ import 'dart:io';
 import 'package:process_run/shell.dart';
 import 'cli_helper.dart';
 
-/// Utility class to execute Flutter CLI commands
+ 
 class CommandExecutor {
   final _cliHelper = CliHelper();
 
-  /// Installs multiple Flutter packages
+   
   Future<bool> installPackages(List<String> packages) async {
     if (packages.isEmpty) {
       _cliHelper.printWarning('No packages to install.');
@@ -24,7 +24,7 @@ class CommandExecutor {
         );
 
         try {
-          // Run flutter pub add command
+           
           await shell.run('flutter pub add $package');
           successCount++;
           _cliHelper.printSuccess('      ✓ $package installed successfully');
@@ -43,7 +43,7 @@ class CommandExecutor {
     }
   }
 
-  /// Runs flutter pub get
+   
   Future<bool> runPubGet() async {
     try {
       final shell = Shell();
@@ -58,7 +58,7 @@ class CommandExecutor {
     }
   }
 
-  /// Runs flutter pub upgrade
+   
   Future<bool> runPubUpgrade() async {
     try {
       final shell = Shell();
@@ -73,7 +73,7 @@ class CommandExecutor {
     }
   }
 
-  /// Runs flutter clean
+   
   Future<bool> runClean() async {
     try {
       final shell = Shell();
@@ -88,15 +88,15 @@ class CommandExecutor {
     }
   }
 
-  /// Checks if Flutter is installed
+   
   Future<bool> checkFlutterInstallation() async {
-    // 1) Try invoking 'flutter --version' directly
+     
     try {
       final result = await Process.run('flutter', ['--version']);
       if (result.exitCode == 0) return true;
     } catch (_) {}
 
-    // 2) Platform-specific locator: 'where' on Windows, 'which' on Unix
+     
     try {
       if (Platform.isWindows) {
         final whereRes = await Process.run('where', ['flutter']);
@@ -113,7 +113,7 @@ class CommandExecutor {
       }
     } catch (_) {}
 
-    // 3) Scan PATH entries looking for flutter executable/flutter.bat
+     
     final pathEnv =
         Platform.environment['PATH'] ?? Platform.environment['Path'] ?? '';
     final separator = Platform.isWindows ? ';' : ':';
@@ -121,7 +121,7 @@ class CommandExecutor {
     for (var entry in entries) {
       final trimmed = entry.trim();
       if (trimmed.isEmpty) continue;
-      // Check common locations
+       
       final candidate1 = Platform.isWindows
           ? File('$trimmed\\flutter.bat')
           : File('$trimmed/flutter');
@@ -137,9 +137,9 @@ class CommandExecutor {
     return false;
   }
 
-  /// Gets Flutter version
+   
   Future<String?> getFlutterVersion() async {
-    // Attempt to run 'flutter --version' directly
+     
     try {
       final result = await Process.run('flutter', ['--version']);
       if (result.exitCode == 0) {
@@ -147,7 +147,7 @@ class CommandExecutor {
       }
     } catch (_) {}
 
-    // Try to locate flutter binary and run it
+     
     try {
       String? pathCandidate;
       if (Platform.isWindows) {
@@ -172,7 +172,7 @@ class CommandExecutor {
       }
     } catch (_) {}
 
-    // Last resort: scan PATH for flutter executable and run it
+     
     final pathEnv =
         Platform.environment['PATH'] ?? Platform.environment['Path'] ?? '';
     final separator = Platform.isWindows ? ';' : ':';

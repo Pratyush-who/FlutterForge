@@ -1,12 +1,8 @@
-/// Model class to hold parsed Gemini API response
 class GeminiResponse {
-  /// List of recommended Flutter packages
   final List<String> packages;
 
-  /// Suggested app flow/navigation structure
   final List<String> appFlow;
 
-  /// Additional notes or recommendations
   final String notes;
 
   GeminiResponse({
@@ -15,7 +11,6 @@ class GeminiResponse {
     required this.notes,
   });
 
-  /// Creates a GeminiResponse from JSON
   factory GeminiResponse.fromJson(Map<String, dynamic> json) {
     return GeminiResponse(
       packages:
@@ -32,7 +27,6 @@ class GeminiResponse {
     );
   }
 
-  /// Converts GeminiResponse to JSON
   Map<String, dynamic> toJson() {
     return {'packages': packages, 'appFlow': appFlow, 'notes': notes};
   }

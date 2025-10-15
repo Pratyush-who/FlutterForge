@@ -1,9 +1,9 @@
-/// Folder structure configuration
+ 
 class FolderStructure {
-  /// Architecture pattern (mvvm, mvc, clean, feature-first)
+   
   final String pattern;
   
-  /// List of folder paths to create
+   
   final List<String> folders;
 
   FolderStructure({
@@ -34,18 +34,18 @@ class FolderStructure {
   }
 }
 
-/// Model class to hold parsed Gemini API response
+ 
 class GeminiResponse {
-  /// List of recommended Flutter packages
+   
   final List<String> packages;
   
-  /// Suggested app flow/navigation structure
+   
   final List<String> appFlow;
   
-  /// Folder structure configuration
+   
   final FolderStructure folderStructure;
   
-  /// Additional notes or recommendations
+   
   final String notes;
 
   GeminiResponse({

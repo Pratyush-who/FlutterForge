@@ -13,7 +13,7 @@ Future<void> main() async {
 
   Banner.show();
 
-  // Check Flutter installation
+   
   cliHelper.printInfo('   Checking Flutter installation...');
   final isFlutterInstalled = await commandExecutor.checkFlutterInstallation();
 
@@ -32,7 +32,7 @@ Future<void> main() async {
 
   Banner.showSeparator();
 
-  // Check Flutter project
+   
   final projectPath = folderCreator.getCurrentProjectPath();
   if (projectPath == null) {
     cliHelper.printWarning('\n   ⚠️  Not in a Flutter project directory');
@@ -44,7 +44,7 @@ Future<void> main() async {
     cliHelper.printSuccess('\n   ✓ Flutter project detected');
   }
 
-  // Get project description
+   
   cliHelper.printSection('\n   PROJECT DESCRIPTION');
   Banner.showSubSeparator();
   cliHelper.printDim(
@@ -58,7 +58,7 @@ Future<void> main() async {
     exit(1);
   }
 
-  // Architecture selection
+   
   cliHelper.printSection('\n   ARCHITECTURE PATTERN');
   Banner.showSubSeparator();
   print('''
@@ -111,7 +111,7 @@ Future<void> main() async {
 
   Banner.showSeparator();
 
-  // AI Analysis
+   
   cliHelper.printSection('\n   AI ANALYSIS');
   Banner.showSubSeparator();
   cliHelper.showSpinner('   Analyzing with Gemini API...');
@@ -130,15 +130,15 @@ Future<void> main() async {
 
   cliHelper.printSuccess('   ✓ Analysis complete\n');
 
-  // Display results
+   
   Banner.showSeparator();
 
-  // Interactive review loop
+   
   var finalResponse = response;
   var shouldReview = true;
 
   while (shouldReview) {
-    // Display current recommendations
+     
     if (finalResponse.packages.isNotEmpty) {
       cliHelper.printSection(
         '\n   RECOMMENDED PACKAGES (${finalResponse.packages.length})',
@@ -175,7 +175,7 @@ Future<void> main() async {
 
     Banner.showSeparator();
 
-    // Review options
+     
     print('');
     cliHelper.printSection('   REVIEW OPTIONS');
     print('   ${_green}1.$_reset Proceed with installation');
@@ -189,7 +189,7 @@ Future<void> main() async {
       cliHelper.printWarning('\n   → Cancelled by user');
       exit(0);
     } else if (choice == '2') {
-      // Get modification request
+       
       print('');
       cliHelper.printPrompt(
         '   Describe changes (e.g., "add payment, remove firebase, use bloc"): ',
@@ -203,7 +203,7 @@ Future<void> main() async {
         continue;
       }
 
-      // Regenerate with modifications
+       
       cliHelper.printSection('\n   Applying modifications...');
       final modifiedResponse = await geminiService.modifyRecommendations(
         userInput,
@@ -221,12 +221,12 @@ Future<void> main() async {
         Banner.showSeparator();
       }
     } else {
-      // Proceed with installation (choice == '1' or default)
+       
       shouldReview = false;
     }
   }
 
-  // Final confirmations with updated response
+   
   print('');
   final installPackages =
       finalResponse.packages.isNotEmpty &&
@@ -244,7 +244,7 @@ Future<void> main() async {
 
   Banner.showSeparator();
 
-  // Create folders
+   
   if (createFolders) {
     if (projectPath == null) {
       cliHelper.printError(
@@ -258,7 +258,7 @@ Future<void> main() async {
     }
   }
 
-  // Install packages
+   
   if (installPackages) {
     if (projectPath == null) {
       cliHelper.printWarning(
@@ -286,7 +286,7 @@ Future<void> main() async {
     }
   }
 
-  // Summary
+   
   Banner.showSeparator();
   print('''
 $_green$_bold
@@ -307,7 +307,7 @@ $_reset
   print('');
 }
 
-// ANSI colors
+ 
 const _reset = '\x1B[0m';
 const _green = '\x1B[32m';
 const _cyan = '\x1B[36m';
