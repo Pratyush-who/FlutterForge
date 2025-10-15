@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutterforge/folder_struc.dart';
+import 'package:flutterforge_cli/folder_struc.dart';
 import 'package:http/http.dart' as http;
 
 class GeminiService {

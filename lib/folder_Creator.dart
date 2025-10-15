@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flutterforge/folder_struc.dart';
+import 'package:flutterforge_cli/folder_struc.dart';
 import 'cli_helper.dart';
 
  

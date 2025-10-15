@@ -1,9 +1,9 @@
 import 'dart:io';
-import 'package:flutterforge/cli_helper.dart';
-import 'package:flutterforge/banner.dart';
-import 'package:flutterforge/cmd_execute.dart';
-import 'package:flutterforge/folder_creator.dart';
-import 'package:flutterforge/gemini.dart';
+import 'package:flutterforge_cli/cli_helper.dart';
+import 'package:flutterforge_cli/banner.dart';
+import 'package:flutterforge_cli/cmd_execute.dart';
+import 'package:flutterforge_cli/folder_creator.dart';
+import 'package:flutterforge_cli/gemini.dart';
 
 Future<void> main() async {
   final cliHelper = CliHelper();
