@@ -1,6 +1,8 @@
 name: flutterforge
 description: "A Dart CLI for Flutter project setup"
 version: 0.0.1
+repository: https://github.com/Pratyush-who/flutterforge
+homepage: https://pub.dev/packages/flutterforge
 
 environment:
   sdk: ">=3.9.2 <4.0.0"
