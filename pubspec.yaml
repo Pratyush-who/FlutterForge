@@ -1,4 +1,4 @@
-name: flutterforge
+name: flutterforge_cli
 description: "A Dart CLI for Flutter project setup"
 version: 0.0.1
 repository: https://github.com/Pratyush-who/flutterforge
