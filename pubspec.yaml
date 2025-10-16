@@ -1,6 +1,6 @@
 name: flutterforge_cli
 description: "A Dart CLI for Flutter project setup"
-version: 0.0.1
+version: 0.0.2
 repository: https://github.com/Pratyush-who/flutterforge
 homepage: https://pub.dev/packages/flutterforge
 
