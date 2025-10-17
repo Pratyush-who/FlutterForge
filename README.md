@@ -9,7 +9,7 @@ generate a clean project structure and recommends useful packages using Gemini A
 
 ---
 
-## 🖌 ASCII Banner (Blue in Terminal)
+## 🖌 ASCII Banner 
 
 ```bash
 ███████╗██╗     ██╗   ██╗████████╗████████╗███████╗██████╗ 
@@ -48,9 +48,13 @@ flutter --version
 ```
 ### 2. Run this cmd
 ```bash
-- dart pub global activate flutterforge_cli
+dart pub global activate flutterforge_cli
 ```
 ### 3. Verify installation
 ```bash
-- flutterforge --version
-```
+flutterforge_cli --version
+``` 
+### 4. Run the command to start 
+```bash
+flutterforge_cli
+``` 

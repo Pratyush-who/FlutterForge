@@ -6,6 +6,7 @@ import 'package:flutterforge_cli/folder_creator.dart';
 import 'package:flutterforge_cli/gemini.dart';
 
 Future<void> main() async {
+  print('FlutterForge CLI v0.0.3');
   final cliHelper = CliHelper();
   final geminiService = GeminiService();
   final commandExecutor = CommandExecutor();
