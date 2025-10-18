@@ -2,11 +2,9 @@ import 'dart:io';
 import 'package:flutterforge_cli/folder_struc.dart';
 import 'cli_helper.dart';
 
- 
 class FolderCreator {
   final _cliHelper = CliHelper();
 
-   
   Future<bool> createFolderStructure(
     FolderStructure structure,
     String projectPath,
@@ -38,25 +36,22 @@ class FolderCreator {
           await dir.create(recursive: true);
           _cliHelper.printSuccess('   ✓ Created: $folder');
 
-           
           final gitkeepFile = File('$folderPath/.gitkeep');
-           
+
           await gitkeepFile.writeAsString('', flush: true);
 
           createdCount++;
         }
 
-         
         _cliHelper.showProgress(i + 1, structure.folders.length);
       }
 
-      print('');  
+      print('');
       _cliHelper.printSuccess('\n   ✓ Folder structure created successfully!');
       _cliHelper.printInfo(
         '   Summary: $createdCount created, $skippedCount already existed',
       );
 
-       
       await _createArchitectureReadme(structure, libPath);
 
       return true;
@@ -66,7 +61,6 @@ class FolderCreator {
     }
   }
 
-   
   Future<void> _createArchitectureReadme(
     FolderStructure structure,
     String libPath,
@@ -245,14 +239,12 @@ features/
 ''';
   }
 
-   
   bool isFlutterProject(String path) {
     final pubspecFile = File('$path/pubspec.yaml');
     final libDir = Directory('$path/lib');
     return pubspecFile.existsSync() && libDir.existsSync();
   }
 
-   
   String? getCurrentProjectPath() {
     final currentDir = Directory.current.path;
     if (isFlutterProject(currentDir)) {

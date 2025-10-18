@@ -4,7 +4,8 @@
 
 ---
 
-FlutterForge CLI is a smart **command-line utility** that helps Flutter developers quickly set up a professional project structure and recommends packages intelligently — powered by **Google Gemini AI**.
+FlutterForge CLI is a command-line utility that helps Flutter developers
+generate a clean project structure and recommends useful packages using Gemini AI.
 
 ---
 

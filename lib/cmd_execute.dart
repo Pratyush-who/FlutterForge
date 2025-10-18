@@ -2,11 +2,9 @@ import 'dart:io';
 import 'package:process_run/shell.dart';
 import 'cli_helper.dart';
 
- 
 class CommandExecutor {
   final _cliHelper = CliHelper();
 
-   
   Future<bool> installPackages(List<String> packages) async {
     if (packages.isEmpty) {
       _cliHelper.printWarning('No packages to install.');
@@ -24,7 +22,6 @@ class CommandExecutor {
         );
 
         try {
-           
           await shell.run('flutter pub add $package');
           successCount++;
           _cliHelper.printSuccess('      ✓ $package installed successfully');
@@ -43,7 +40,6 @@ class CommandExecutor {
     }
   }
 
-   
   Future<bool> runPubGet() async {
     try {
       final shell = Shell();
@@ -58,7 +54,6 @@ class CommandExecutor {
     }
   }
 
-   
   Future<bool> runPubUpgrade() async {
     try {
       final shell = Shell();
@@ -73,7 +68,6 @@ class CommandExecutor {
     }
   }
 
-   
   Future<bool> runClean() async {
     try {
       final shell = Shell();
@@ -88,15 +82,12 @@ class CommandExecutor {
     }
   }
 
-   
   Future<bool> checkFlutterInstallation() async {
-     
     try {
       final result = await Process.run('flutter', ['--version']);
       if (result.exitCode == 0) return true;
     } catch (_) {}
 
-     
     try {
       if (Platform.isWindows) {
         final whereRes = await Process.run('where', ['flutter']);
@@ -113,7 +104,6 @@ class CommandExecutor {
       }
     } catch (_) {}
 
-     
     final pathEnv =
         Platform.environment['PATH'] ?? Platform.environment['Path'] ?? '';
     final separator = Platform.isWindows ? ';' : ':';
@@ -121,7 +111,7 @@ class CommandExecutor {
     for (var entry in entries) {
       final trimmed = entry.trim();
       if (trimmed.isEmpty) continue;
-       
+
       final candidate1 = Platform.isWindows
           ? File('$trimmed\\flutter.bat')
           : File('$trimmed/flutter');
@@ -137,9 +127,7 @@ class CommandExecutor {
     return false;
   }
 
-   
   Future<String?> getFlutterVersion() async {
-     
     try {
       final result = await Process.run('flutter', ['--version']);
       if (result.exitCode == 0) {
@@ -147,7 +135,6 @@ class CommandExecutor {
       }
     } catch (_) {}
 
-     
     try {
       String? pathCandidate;
       if (Platform.isWindows) {
@@ -172,7 +159,6 @@ class CommandExecutor {
       }
     } catch (_) {}
 
-     
     final pathEnv =
         Platform.environment['PATH'] ?? Platform.environment['Path'] ?? '';
     final separator = Platform.isWindows ? ';' : ':';

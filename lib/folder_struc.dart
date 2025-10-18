@@ -1,9 +1,6 @@
- 
 class FolderStructure {
-   
   final String pattern;
-  
-   
+
   final List<String> folders;
 
   FolderStructure({
@@ -34,18 +31,13 @@ class FolderStructure {
   }
 }
 
- 
 class GeminiResponse {
-   
   final List<String> packages;
-  
-   
+
   final List<String> appFlow;
-  
-   
+
   final FolderStructure folderStructure;
-  
-   
+
   final String notes;
 
   GeminiResponse({

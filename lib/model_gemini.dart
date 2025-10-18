@@ -13,13 +13,11 @@ class GeminiResponse {
 
   factory GeminiResponse.fromJson(Map<String, dynamic> json) {
     return GeminiResponse(
-      packages:
-          (json['packages'] as List<dynamic>?)
+      packages: (json['packages'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],
-      appFlow:
-          (json['appFlow'] as List<dynamic>?)
+      appFlow: (json['appFlow'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],

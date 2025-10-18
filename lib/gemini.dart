@@ -164,7 +164,12 @@ ARCHITECTURE PATTERNS:
 - clean: ["data/models", "data/repositories", "data/datasources/remote", "data/datasources/local", "domain/entities", "domain/usecases", "domain/repositories", "presentation/screens", "presentation/widgets", "presentation/bloc", "core/utils", "core/constants", "core/network"]
 - feature-first: ["features/auth/data", "features/auth/domain", "features/auth/presentation", "features/home/data", "features/home/domain", "features/home/presentation", "core/network", "core/utils", "shared/widgets"]
 
-${architecture != null && !['mvvm', 'mvc', 'clean', 'feature-first'].contains(architecture.toLowerCase()) ? 'CUSTOM: Interpret "$architecture" and create meaningful folders based on the description.' : ''}
+${architecture != null && ![
+              'mvvm',
+              'mvc',
+              'clean',
+              'feature-first'
+            ].contains(architecture.toLowerCase()) ? 'CUSTOM: Interpret "$architecture" and create meaningful folders based on the description.' : ''}
 
 CRITICAL: Return ONLY the JSON object. No markdown, no explanations.''';
   }

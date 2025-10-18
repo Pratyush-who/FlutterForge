@@ -13,7 +13,6 @@ Future<void> main() async {
 
   Banner.show();
 
-   
   cliHelper.printInfo('   Checking Flutter installation...');
   final isFlutterInstalled = await commandExecutor.checkFlutterInstallation();
 
@@ -32,7 +31,6 @@ Future<void> main() async {
 
   Banner.showSeparator();
 
-   
   final projectPath = folderCreator.getCurrentProjectPath();
   if (projectPath == null) {
     cliHelper.printWarning('\n   ⚠️  Not in a Flutter project directory');
@@ -44,7 +42,6 @@ Future<void> main() async {
     cliHelper.printSuccess('\n   ✓ Flutter project detected');
   }
 
-   
   cliHelper.printSection('\n   PROJECT DESCRIPTION');
   Banner.showSubSeparator();
   cliHelper.printDim(
@@ -58,7 +55,6 @@ Future<void> main() async {
     exit(1);
   }
 
-   
   cliHelper.printSection('\n   ARCHITECTURE PATTERN');
   Banner.showSubSeparator();
   print('''
@@ -111,7 +107,6 @@ Future<void> main() async {
 
   Banner.showSeparator();
 
-   
   cliHelper.printSection('\n   AI ANALYSIS');
   Banner.showSubSeparator();
   cliHelper.showSpinner('   Analyzing with Gemini API...');
@@ -130,15 +125,12 @@ Future<void> main() async {
 
   cliHelper.printSuccess('   ✓ Analysis complete\n');
 
-   
   Banner.showSeparator();
 
-   
   var finalResponse = response;
   var shouldReview = true;
 
   while (shouldReview) {
-     
     if (finalResponse.packages.isNotEmpty) {
       cliHelper.printSection(
         '\n   RECOMMENDED PACKAGES (${finalResponse.packages.length})',
@@ -175,7 +167,6 @@ Future<void> main() async {
 
     Banner.showSeparator();
 
-     
     print('');
     cliHelper.printSection('   REVIEW OPTIONS');
     print('   ${_green}1.$_reset Proceed with installation');
@@ -189,7 +180,6 @@ Future<void> main() async {
       cliHelper.printWarning('\n   → Cancelled by user');
       exit(0);
     } else if (choice == '2') {
-       
       print('');
       cliHelper.printPrompt(
         '   Describe changes (e.g., "add payment, remove firebase, use bloc"): ',
@@ -203,7 +193,6 @@ Future<void> main() async {
         continue;
       }
 
-       
       cliHelper.printSection('\n   Applying modifications...');
       final modifiedResponse = await geminiService.modifyRecommendations(
         userInput,
@@ -221,15 +210,12 @@ Future<void> main() async {
         Banner.showSeparator();
       }
     } else {
-       
       shouldReview = false;
     }
   }
 
-   
   print('');
-  final installPackages =
-      finalResponse.packages.isNotEmpty &&
+  final installPackages = finalResponse.packages.isNotEmpty &&
       cliHelper.confirm(
         '   Install ${finalResponse.packages.length} packages? (y/n): ',
       );
@@ -244,7 +230,6 @@ Future<void> main() async {
 
   Banner.showSeparator();
 
-   
   if (createFolders) {
     if (projectPath == null) {
       cliHelper.printError(
@@ -258,7 +243,6 @@ Future<void> main() async {
     }
   }
 
-   
   if (installPackages) {
     if (projectPath == null) {
       cliHelper.printWarning(
@@ -286,7 +270,6 @@ Future<void> main() async {
     }
   }
 
-   
   Banner.showSeparator();
   print('''
 $_green$_bold
@@ -307,7 +290,6 @@ $_reset
   print('');
 }
 
- 
 const _reset = '\x1B[0m';
 const _green = '\x1B[32m';
 const _cyan = '\x1B[36m';
@@ -353,8 +335,7 @@ void _showTips(String pattern, CliHelper cli) {
     ],
   };
 
-  final tipList =
-      tips[pattern.toLowerCase()] ??
+  final tipList = tips[pattern.toLowerCase()] ??
       [
         'Maintain separation of concerns',
         'Keep business logic separate from UI',
