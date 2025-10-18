@@ -1,6 +1,6 @@
 name: flutterforge_cli
 description: "FlutterForge CLI is a smart Dart command-line tool that helps Flutter developers create clean project structures, apply best architecture patterns, and get AI-powered package recommendations using Gemini AI."
-version: 0.0.2
+version: 0.0.3
 repository: https://github.com/Pratyush-who/flutterforge
 homepage: https://pub.dev/packages/flutterforge
 

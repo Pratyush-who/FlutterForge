@@ -14,3 +14,6 @@
 - 🧩 Added AI-powered folder structure generation
 - ⚙️ Enhanced command help and error messages
 - 🪶 Cleaner output banner and terminal formatting
+
+## 0.0.3
+- fixing points
