@@ -17,3 +17,6 @@
 
 ## 0.0.3
 - fixing points
+
+## 0.0.4
+- final release i guess
