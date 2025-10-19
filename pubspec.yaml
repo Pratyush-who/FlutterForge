@@ -1,6 +1,7 @@
 name: flutterforge_cli
 description: "A Dart CLI that helps Flutter developers get clean structures, apply best practices, and get AI-powered package suggestions."
-version: 0.0.4
+version: 0.0.5
+license: MIT
 homepage: https://github.com/Pratyush-who/flutterforge
 repository: https://github.com/Pratyush-who/flutterforge
 issue_tracker: https://github.com/Pratyush-who/flutterforge/issues
@@ -23,3 +24,4 @@ executables:
   flutterforge_cli: flutterforge
   list_models: list_models
   test_generate: test_generate
+
